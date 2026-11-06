@@ -1,59 +1,3 @@
-"""
-Napari embryo nuclear-cycle (NC) stage labeling tool.
-
-Point it at:
-  - a single image file, OR
-  - a flat directory of images, OR
-  - a directory of CHANNEL subdirectories (e.g. "transmitted/",
-    "638_widefield/"), each holding the same set of positions imaged in
-    a different channel. Matching images across channel folders (same
-    filename except for the channel-specific part) are grouped and
-    opened together as separate layers in napari, labeled once, and
-    moved together.
-
-    e.g.
-        embryo_images/
-          transmitted/0629_pos007_transmitted.tif
-          638_widefield/0629_pos007_638_widefield.tif
-    both belong to group key "0629_pos007" and open as two layers.
-
-One button per developmental stage (undetectable -> NC14+). Clicking a
-button records the *currently displayed frame* as the first frame of
-that stage.
-
-"Confirm & Save" immediately:
-  1. writes/updates this group's entry in labels.yaml (preserving all
-     existing comments/formatting/other entries) -- written ONCE per
-     group, even though multiple channel images share it,
-  2. moves every channel's image for this group into a "labeled"
-     subfolder (one per channel folder, so channel structure is kept),
-  3. loads the next group automatically.
-
-Because each confirm saves right away, quitting the app at any point
-keeps everything you've already confirmed -- nothing is lost.
-
-Install requirements (once):
-    pip install napari[all] magicgui ruamel.yaml
-
-Usage:
-    # Single image
-    python embryo_labeler.py /path/to/embryo17.tif --yaml /path/to/labels.yaml
-
-    # Flat directory of images -- one image at a time
-    python embryo_labeler.py /path/to/embryo_images/ --yaml labels.yaml
-
-    # Directory of channel subfolders -- matching images grouped & opened together
-    python embryo_labeler.py /path/to/embryo_images/ --yaml labels.yaml
-
-    # Optional flags
-    python embryo_labeler.py /path/to/embryo_images/ \
-        --yaml labels.yaml \
-        --labeled-dir /path/to/labeled \
-        --time-between-frames 60 \
-        --extensions .tif,.tiff \
-        --include-labeled
-"""
-
 from __future__ import annotations
 
 import argparse
@@ -67,8 +11,6 @@ from magicgui.widgets import Container, Label, PushButton, SpinBox
 from qtpy.QtWidgets import QMessageBox, QScrollArea, QSizePolicy
 from ruamel.yaml import YAML
 
-# Stages in chronological order. This list both defines the buttons
-# shown and the key order written back to the yaml file.
 STAGES = [
     "undetectable",
     "NC9",
@@ -86,13 +28,11 @@ STAGES = [
 
 DEFAULT_EXTENSIONS = {".tif", ".tiff", ".png", ".jpg", ".jpeg", ".nd2", ".czi", ".lsm"}
 
-# Used internally as the "channel" key when there's no real channel split.
 _SINGLE_CHANNEL = "_image"
 
-
 class ImageGroup(NamedTuple):
-    key: str  # embryo name / yaml key
-    files: dict[str, Path]  # channel name -> file path
+    key: str
+    files: dict[str, Path]
 
 
 class EmbryoLabelerSession:
@@ -117,7 +57,6 @@ class EmbryoLabelerSession:
 
         self.yaml_path = Path(yaml_path)
 
-        # ruamel round-trip yaml preserves comments and ordering
         self.yaml = YAML()
         self.yaml.preserve_quotes = True
         self.yaml.indent(mapping=2, sequence=4, offset=2)
@@ -150,7 +89,6 @@ class EmbryoLabelerSession:
                 f"(extensions: {sorted(self.extensions)})."
             )
 
-        # current-group state, set in _load_next_image()
         self.embryo_name: str | None = None
         self.current_files: dict[str, Path] = {}
         self.labels: dict[str, int] = {}
@@ -159,9 +97,6 @@ class EmbryoLabelerSession:
         self._build_ui()
         self._load_next_image()
 
-    # ------------------------------------------------------------------
-    # Discovery / grouping
-    # ------------------------------------------------------------------
     def _has_images(self, directory: Path) -> bool:
         return any(
             p.is_file() and p.suffix.lower() in self.extensions
@@ -186,11 +121,6 @@ class EmbryoLabelerSession:
 
     @staticmethod
     def _channel_key(stem: str, channel_name: str) -> str:
-        """Strip the channel folder's name out of a filename stem so that
-        matching images across channel folders resolve to the same key.
-        e.g. ("0629_pos007_transmitted", "transmitted") -> "0629_pos007"
-             ("0629_pos007_638_widefield", "638_widefield") -> "0629_pos007"
-        """
         key = stem
         if channel_name in key:
             key = key.replace(channel_name, "")
@@ -200,7 +130,6 @@ class EmbryoLabelerSession:
         return key
 
     def _build_channel_queue(self, channel_dirs: list[Path]) -> list[ImageGroup]:
-        # channel name -> {group key -> file path}
         per_channel: dict[str, dict[str, Path]] = {}
         for d in channel_dirs:
             mapping: dict[str, Path] = {}
@@ -234,9 +163,6 @@ class EmbryoLabelerSession:
             groups.append(ImageGroup(key=key, files=files))
         return groups
 
-    # ------------------------------------------------------------------
-    # Image loading
-    # ------------------------------------------------------------------
     def _load_next_image(self):
         if not self.queue:
             QMessageBox.information(
@@ -263,7 +189,6 @@ class EmbryoLabelerSession:
                 self._load_next_image()
                 return
 
-        # Preload existing entry if relabeling (--include-labeled)
         existing = self.data.get(self.embryo_name)
         tbf = self.default_time_between_frames
         if existing:
@@ -287,7 +212,6 @@ class EmbryoLabelerSession:
         self.name_label.value = f"Embryo: {self.embryo_name}\n{subtitle}\n{remaining} left after this"
         self._refresh_frame_indicator()
 
-    # ------------------------------------------------------------------
     def current_frame(self) -> int:
         """1-indexed frame number currently shown (assumes axis 0 = time)."""
         step = self.viewer.dims.current_step
@@ -298,9 +222,6 @@ class EmbryoLabelerSession:
     def _refresh_frame_indicator(self, event=None):
         self.frame_indicator.value = f"Current frame: {self.current_frame()}"
 
-    # ------------------------------------------------------------------
-    # UI
-    # ------------------------------------------------------------------
     def _build_ui(self):
         """Build the dock panel once. Per-image state is reset by _load_next_image()."""
         widgets = []
@@ -374,7 +295,6 @@ class EmbryoLabelerSession:
 
         self.viewer.window.add_dock_widget(scroll, area="right", name="Embryo Labeler")
 
-    # ------------------------------------------------------------------
     def skip(self):
         """Move to the next group without saving or moving the current one."""
         if self.labels:
@@ -388,13 +308,11 @@ class EmbryoLabelerSession:
                 return
         self._load_next_image()
 
-    # ------------------------------------------------------------------
     def _dest_dir_for(self, channel: str, file_path: Path) -> Path:
         if self.labeled_dir_override is not None:
             if channel == _SINGLE_CHANNEL:
                 return self.labeled_dir_override
             return self.labeled_dir_override / channel
-        # default: a "labeled" subfolder right next to where the file came from
         return file_path.parent / "labeled"
 
     def confirm(self):
@@ -404,7 +322,6 @@ class EmbryoLabelerSession:
             )
             return
 
-        # Sanity check: frame numbers should be non-decreasing in stage order
         ordered = [(s, self.labels[s]) for s in STAGES if s in self.labels]
         for (s1, f1), (s2, f2) in zip(ordered, ordered[1:]):
             if f2 < f1:
@@ -423,18 +340,14 @@ class EmbryoLabelerSession:
             if stage in self.labels:
                 entry[stage] = self.labels[stage]
 
-        # Save to yaml immediately (once per group) so nothing is lost if the
-        # app quits later.
         is_new_entry = self.embryo_name not in self.data
         self.data[self.embryo_name] = entry
         if is_new_entry:
-            # Match the existing file's style of a blank line between entries.
             self.data.yaml_set_comment_before_after_key(self.embryo_name, before="\n")
         self.yaml_path.parent.mkdir(parents=True, exist_ok=True)
         with open(self.yaml_path, "w") as f:
             self.yaml.dump(self.data, f)
 
-        # Move every channel's file for this group immediately too.
         moved = []
         try:
             for channel, file_path in self.current_files.items():
@@ -455,7 +368,6 @@ class EmbryoLabelerSession:
         self._load_next_image()
 
 
-# ----------------------------------------------------------------------
 def main():
     parser = argparse.ArgumentParser(description="Napari embryo NC-stage labeler")
     parser.add_argument(
