@@ -2704,8 +2704,8 @@ requires-dist = [
     { name = "scikit-image", specifier = ">=0.25.2" },
     { name = "tifffile", specifier = ">=2025.9.20" },
     { name = "toml", specifier = ">=0.10.2" },
-    { name = "torch", marker = "extra == 'cellpose'", index = "https://download.pytorch.org/whl/cu121" },
-    { name = "torchvision", marker = "extra == 'cellpose'", index = "https://download.pytorch.org/whl/cu121" },
+    { name = "torch", marker = "extra == 'cellpose'", index = "https://download.pytorch.org/whl/cu128" },
+    { name = "torchvision", marker = "extra == 'cellpose'", index = "https://download.pytorch.org/whl/cu128" },
 ]
 provides-extras = ["cellpose", "calibration"]
 
@@ -2714,22 +2714,28 @@ analysis = [
     { name = "laptrack", specifier = ">=0.17.0" },
     { name = "matplotlib", specifier = ">=3.10.6" },
     { name = "pandas", specifier = ">=2.3.2" },
+    { name = "statannotations", specifier = ">=0.7.2" },
     { name = "tqdm", specifier = ">=4.67.1" },
 ]
 dev = [
     { name = "laptrack", specifier = ">=0.17.0" },
     { name = "matplotlib", specifier = ">=3.10.6" },
     { name = "myst-parser" },
+    { name = "nox", specifier = ">=2025.2.9" },
     { name = "pandas", specifier = ">=2.3.2" },
-    { name = "pre-commit", specifier = ">=4.5.1" },
     { name = "pytest", specifier = ">=8.4.2" },
+    { name = "scipy", specifier = ">=1.15.0" },
     { name = "sphinx" },
     { name = "sphinx-rtd-theme" },
+    { name = "statannotations", specifier = ">=0.7.2" },
     { name = "tqdm", specifier = ">=4.67.1" },
 ]
 docs = [
+    { name = "matplotlib", specifier = ">=3.10.6" },
     { name = "myst-parser" },
+    { name = "nox", specifier = ">=2025.2.9" },
     { name = "pytest", specifier = ">=8.4.2" },
+    { name = "scipy", specifier = ">=1.15.0" },
     { name = "sphinx" },
     { name = "sphinx-rtd-theme" },
 ]
