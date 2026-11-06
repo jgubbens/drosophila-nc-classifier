@@ -17,7 +17,7 @@ class Combined_HMM_Predictor(HMM_Predictor):
         self.current_state = None
         self.frames_in_state = 0
         self.viterbi_log_dp = None
-        self.hybrid_mode = False
+        self.greedy_mode = False
 
     def _get_duration_probs(self, current_state, seconds_in_state):
         probs = np.zeros(self.n_states)
@@ -42,13 +42,13 @@ class Combined_HMM_Predictor(HMM_Predictor):
     def _select_state(self, model_probs):
         model_pred = np.argmax(model_probs)
         if model_pred >= self.switch_state:
-            self.hybrid_mode = True
-        if self.hybrid_mode:
-            return self._select_state_hybrid(model_probs)
+            self.greedy_mode = True
+        if self.greedy_mode:
+            return self._select_state_greedy(model_probs)
         else:
-            return self._select_state_pure(model_probs)
+            return self._select_state_viterbi(model_probs)
     
-    def _select_state_hybrid(self, model_probs):
+    def _select_state_greedy(self, model_probs):
         seconds_in_state = self.frames_in_state * self.time_between_frames
         duration_probs = self._get_duration_probs(self.current_state, seconds_in_state)
 
@@ -61,7 +61,7 @@ class Combined_HMM_Predictor(HMM_Predictor):
         self.current_state = prediction
         return prediction
     
-    def _select_state_pure(self, model_probs):
+    def _select_state_viterbi(self, model_probs):
         log_emit = np.log(np.array(model_probs) + 1e-10)
         log_trans = np.log(self.transition_matrix + 1e-10)
         if self.viterbi_log_dp is None:

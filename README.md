@@ -14,9 +14,9 @@ Live staging of *Drosophila* embryos by nuclear cycle (NC10–NC14+) from bright
 
    | Variant | Trainer / Predictor | Temporal model |
    |---|---|---|
-   | Pure HMM | [pure_hmm/](src/classification/pure_hmm/) | Learned transition matrix + online Viterbi |
-   | Hybrid HMM | [hybrid_hmm/](src/classification/hybrid_hmm/) | Log-normal stage-duration model × CNN probabilities (see [design.md](src/classification/hybrid_hmm/design.md)) |
-   | Combined HMM | [combined_hmm/](src/classification/combined_hmm/) | Pure HMM for early stages, switching to the hybrid duration model once the CNN predicts `switch_state` or later |
+   | Viterbi HMM | [viterbi_hmm/](src/classification/viterbi_hmm/) | Learned transition matrix + online Viterbi |
+   | Greedy HMM | [greedy_hmm/](src/classification/greedy_hmm/) | Log-normal stage-duration model × CNN probabilities, greedy per-frame decision (see [design.md](src/classification/greedy_hmm/design.md)) |
+   | Combined HMM | [combined_hmm/](src/classification/combined_hmm/) | Viterbi HMM for early stages, switching to the greedy duration model once the CNN predicts `switch_state` or later |
 
    Shared logic lives in [base_hmm_trainer.py](src/classification/base_hmm_trainer.py) and [base_hmm_predictor.py](src/classification/base_hmm_predictor.py). Predicted states are `undetectable, NC10, NC10M, NC11, NC11M, NC12, NC12M, NC13, NC13M, NC14+` (`M` = mitosis).
 

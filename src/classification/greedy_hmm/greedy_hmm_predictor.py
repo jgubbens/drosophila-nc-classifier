@@ -6,7 +6,7 @@ import torch
 from classification.base_hmm_predictor import HMM_Predictor
 
 
-class Hybrid_HMM_Predictor(HMM_Predictor):
+class Greedy_HMM_Predictor(HMM_Predictor):
 
     def _load_extra_model_info(self, info):
         self.duration_model = {int(k): v for k, v in info['duration_model'].items()}
@@ -57,7 +57,7 @@ if __name__ == "__main__":
     )
     print(f'Using device: {DEVICE}')
 
-    predictor = Hybrid_HMM_Predictor(DEVICE, 'models/hybrid_hmm/hybrid_hmm_model_info.json', time_between_frames=60)
+    predictor = Greedy_HMM_Predictor(DEVICE, 'models/greedy_hmm/greedy_hmm_model_info.json', time_between_frames=60)
 
     # Test live classifier
     print('Testing live classifier')

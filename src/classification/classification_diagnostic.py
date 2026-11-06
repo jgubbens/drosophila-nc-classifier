@@ -12,10 +12,10 @@ if __name__ == '__main__':
     )
     print(f'Using device: {DEVICE}')
 
-    print("Hybrid HMM:")
-    hybrid_hmm = Hybrid_HMM(DATA_PATH, DEVICE, window_size=5, preprocess_images=False, lstm_module=False, img_size=(800, 800))
-    hybrid_hmm.train_hmm()
+    print("Greedy HMM:")
+    greedy_hmm = Greedy_HMM(DATA_PATH, DEVICE, window_size=5, preprocess_images=False, lstm_module=False, img_size=(800, 800))
+    greedy_hmm.train_hmm()
 
-    print("Pure HMM:")
-    pure_hmm = HMM_Trainer(DATA_PATH, DEVICE, window_size=5, preprocess_images=False, lstm_module=False, img_size=(800, 800))
-    pure_hmm.train_hmm()
+    print("Viterbi HMM:")
+    viterbi_hmm = HMM_Trainer(DATA_PATH, DEVICE, window_size=5, preprocess_images=False, lstm_module=False, img_size=(800, 800))
+    viterbi_hmm.train_hmm()

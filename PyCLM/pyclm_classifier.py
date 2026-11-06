@@ -11,14 +11,14 @@ from skimage.measure import label, regionprops
 
 from pyclm import run_pyclm, PFSPositionMover
 from pyclm.core.patterns import PatternContext, OuterPatternMethod
-from classification.hybrid_hmm.hybrid_hmm_predictor import Hybrid_HMM_Predictor
-from classification.pure_hmm.pure_hmm_predictor import Pure_HMM_Predictor
+from classification.greedy_hmm.greedy_hmm_predictor import Greedy_HMM_Predictor
+from classification.viterbi_hmm.viterbi_hmm_predictor import Viterbi_HMM_Predictor
 from processing.extract_embryo import EmbryoExtractor, MultipleEmbryoExtractor
 
 
 # BASE_PATH = r"E:\Justin\calssification_experiment_trials\20260708"
 BASE_PATH = r"PyCLM"
-PREDICTOR_PATH = r'models/hybrid_hmm_efficientnetb3_preprocessed/hybrid_hmm_model_info.json'
+PREDICTOR_PATH = r'models/greedy_hmm_efficientnetb3_preprocessed/greedy_hmm_model_info.json'
 
 class ClassifyEmbryo(OuterPatternMethod):
 
@@ -46,7 +46,7 @@ class ClassifyEmbryo(OuterPatternMethod):
                 with open(self.log_path, 'w') as f:
                     json.dump(info, f, indent=2)
 
-        self.predictor = Hybrid_HMM_Predictor(DEVICE, PREDICTOR_PATH, time_between_frames=60)
+        self.predictor = Greedy_HMM_Predictor(DEVICE, PREDICTOR_PATH, time_between_frames=60)
         self.states = self.predictor.STATES
         self.extractor = EmbryoExtractor()
 
@@ -161,7 +161,7 @@ class ClassifyMultipleEmbryos(OuterPatternMethod):
         os.makedirs(Path(BASE_PATH, "processed_frames"), exist_ok=True)
         for id, frame in frames.items():
             if id not in self.tracked_predictors.keys():
-                self.tracked_predictors[id] = Hybrid_HMM_Predictor(self.DEVICE, PREDICTOR_PATH, time_between_frames=60)
+                self.tracked_predictors[id] = Greedy_HMM_Predictor(self.DEVICE, PREDICTOR_PATH, time_between_frames=60)
             tifffile.imwrite(Path(BASE_PATH, "processed_frames", f"{context._experiment.experiment_name}_{id}_{self._timepoint}.tif"), frame.out_frame)
             print(f"Embryo ID: {id}")
             predictor = self.tracked_predictors[id]

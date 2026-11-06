@@ -9,7 +9,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from classification.base_hmm_trainer import HMM_Trainer
 
 
-class Hybrid_HMM(HMM_Trainer):
+class Greedy_HMM(HMM_Trainer):
 
     def __init__(self, data_dir, device, window_size, preprocess_images=False, lstm_module=False, img_size=None, augment_factor=5):
         super().__init__(
@@ -18,7 +18,7 @@ class Hybrid_HMM(HMM_Trainer):
             lstm_module=lstm_module,
             img_size=img_size,
             augment_factor=augment_factor,
-            model_name='hybrid_hmm',
+            model_name='greedy_hmm',
         )
 
     def _additional_training(self):
@@ -139,7 +139,7 @@ if __name__ == '__main__':
         else 'cpu'
     )
     print(f'Using device: {DEVICE}')
-    classifier = Hybrid_HMM(DATA_PATH, DEVICE, window_size=10, preprocess_images=True, lstm_module=False, img_size=(800, 800), augment_factor=0)
+    classifier = Greedy_HMM(DATA_PATH, DEVICE, window_size=10, preprocess_images=True, lstm_module=False, img_size=(800, 800), augment_factor=0)
 
     classifier.train_hmm()
     # classifier.load_pretrained_models()

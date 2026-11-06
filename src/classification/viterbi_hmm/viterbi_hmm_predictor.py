@@ -5,7 +5,7 @@ import torch
 from classification.base_hmm_predictor import HMM_Predictor
 
 
-class Pure_HMM_Predictor(HMM_Predictor):
+class Viterbi_HMM_Predictor(HMM_Predictor):
 
     def _load_extra_model_info(self, info):
         self.transition_matrix = np.array(info['transition_matrix'])
@@ -32,7 +32,7 @@ if __name__ == "__main__":
     )
     print(f'Using device: {DEVICE}')
 
-    predictor = Pure_HMM_Predictor(DEVICE, 'models/pure_hmm/pure_hmm_model_info.json', time_between_frames=60)
+    predictor = Viterbi_HMM_Predictor(DEVICE, 'models/viterbi_hmm/viterbi_hmm_model_info.json', time_between_frames=60)
 
     # Test live classifier
     print('Testing live classifier')

@@ -132,7 +132,7 @@ class Combined_HMM(HMM_Trainer):
         preds = []
         current_state = None
         frames_in_state = 0
-        hybrid_mode = False
+        greedy_mode = False
 
         for t in range(len(vid)):
             frame, label = vid[t]
@@ -151,9 +151,9 @@ class Combined_HMM(HMM_Trainer):
             obs_probs = np.stack(all_probs)
             model_pred = np.argmax(model_probs)
             if model_pred >= self.switch_state:
-                hybrid_mode = True
+                greedy_mode = True
 
-            if not hybrid_mode:
+            if not greedy_mode:
                 _, path = self.viterbi(obs_probs)
                 prediction = path[-1]
             else:
