@@ -1,4 +1,12 @@
+from pathlib import Path
+import sys
+
 import torch
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from classification.greedy_hmm.greedy_hmm_trainer import Greedy_HMM
+from classification.viterbi_hmm.viterbi_hmm_trainer import Viterbi_HMM
 
 if __name__ == '__main__':
 
@@ -17,5 +25,12 @@ if __name__ == '__main__':
     greedy_hmm.train_hmm()
 
     print("Viterbi HMM:")
-    viterbi_hmm = HMM_Trainer(DATA_PATH, DEVICE, window_size=5, preprocess_images=False, lstm_module=False, img_size=(800, 800))
-    viterbi_hmm.train_hmm()
+    # Reuse the CNN and train/val split from the greedy run so only the decoder differs
+    viterbi_hmm = Viterbi_HMM(DATA_PATH, DEVICE, window_size=5, preprocess_images=False, lstm_module=False, img_size=(800, 800))
+    viterbi_hmm.cnn = greedy_hmm.cnn
+    viterbi_hmm.train_vids = greedy_hmm.train_vids
+    viterbi_hmm.val_vids = greedy_hmm.val_vids
+    Path(viterbi_hmm.model_path).mkdir(parents=True, exist_ok=True)
+    viterbi_hmm._additional_training()
+    viterbi_hmm.save_model_info()
+    viterbi_hmm.evaluate()
