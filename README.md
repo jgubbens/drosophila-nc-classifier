@@ -2,6 +2,34 @@
 
 Live staging of *Drosophila* embryos by nuclear cycle (NC10–NC14+) from brightfield microscopy video. The repo covers preprocessing and labeling of training data, training of CNN + HMM staging models, and closed-loop use on the microscope via [PyCLM](../pyclm), where embryos are optogenetically stimulated once they reach a target stage.
 
+## Usage with PyCLM
+
+[PyCLM/pyclm_classifier.py](PyCLM/pyclm_classifier.py) runs the trained staging model live on the microscope. It stimulates each embryo once its predicted stage reaches NC14+.
+
+1. **Configure the microscope.** In [PyCLM/pyclm_config.toml](PyCLM/pyclm_config.toml), set the Micro-Manager config path and the SLM affine transform and shape.
+2. **Configure the experiment.** Each experiment `.toml` in `PyCLM/` (e.g. [10xcaps30.toml](PyCLM/10xcaps30.toml)) sets the imaging, channel and stimulation settings. Its `[pattern]` section selects the classifier:
+   ```toml
+   [pattern]
+   method = "classify_multiple_embryos"   # or "classify_embryo" for one embryo per position
+   fraction_length = 0.3                  # stimulated fraction of the embryo's long axis
+   classify_channel = "brightfield"       # channel fed to the classifier
+   ```
+3. **Pick the model.** Point `PREDICTOR_PATH` at a trained `<variant>_model_info.json`, and set `BASE_PATH` to the folder that holds the configs. Both are at the top of `pyclm_classifier.py`, and the model loads with `Greedy_HMM_Predictor`.
+4. **Run it.**
+   ```bash
+   uv run python PyCLM/pyclm_classifier.py
+   ```
+   The script calls `run_pyclm(..., gui=True, dry=True)`. Set `dry=False` to drive the real hardware.
+
+At every timepoint, each position's brightfield frame goes through these steps:
+- Embryos are extracted and aligned with `EmbryoExtractor`, or `MultipleEmbryoExtractor`, which tracks each embryo under a stable ID.
+- Each embryo gets its own live predictor.
+- Embryos predicted at the stimulation stage get an outer-bar pattern projected onto them.
+
+Outputs land in `BASE_PATH`:
+- `classification_logs.json`: the predicted stage per experiment, embryo and timepoint.
+- `processed_frames/`: the aligned frames the model saw.
+
 ## Pipeline
 
 1. **Embryo extraction** ([src/processing/extract_embryo.py](src/processing/extract_embryo.py))
